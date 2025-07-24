@@ -5,10 +5,8 @@ interface ThreeColumnLayoutProps {
   sources: NewsSource[];
   selectedSource: NewsSource | null;
   selectedClip: NewsClip | null;
-  combinedPdfUrl?: string | null;
   clipsPdfUrl?: string | null;
   fullPagesPdfUrl?: string | null;
-  loading: boolean;
   onSourceSelect: (source: NewsSource) => void;
   onClipSelect: (source: NewsSource, clip: NewsClip) => void;
 }
@@ -17,10 +15,8 @@ export function ThreeColumnLayout({
   sources,
   selectedSource,
   selectedClip,
-  combinedPdfUrl = null,
   clipsPdfUrl = null,
   fullPagesPdfUrl = null,
-  loading,
   onSourceSelect,
   onClipSelect
 }: ThreeColumnLayoutProps) {
@@ -98,7 +94,6 @@ export function ThreeColumnLayout({
           break;
           
         case 'text-fullpage':
-          const totalRight = prev.fullpage + prev.clips;
           const newTextWidth2 = Math.max(15, Math.min(40, mousePercent - prev.sources));
           const newFullpageWidth = Math.max(20, Math.min(50, 100 - prev.sources - newTextWidth2 - prev.clips));
           newWidths.text = newTextWidth2;

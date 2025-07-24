@@ -179,7 +179,6 @@ function App() {
               selectedClip={selectedClip}
               clipsPdfUrl={clipsPdfUrl}
               fullPagesPdfUrl={fullPagesPdfUrl}
-              loading={loading}
               onSourceSelect={handleSourceSelect}
               onClipSelect={handleClipSelect}
             />
