@@ -12,16 +12,24 @@ function App() {
   const [selectedClip, setSelectedClip] = useState<NewsClip | null>(null);
   const [selectedSource, setSelectedSource] = useState<NewsSource | null>(null);
 
-  const [combinedPdfUrl, setCombinedPdfUrl] = useState<string | null>(null);
+  const [clipsPdfUrl, setClipsPdfUrl] = useState<string | null>(null);
+  const [fullPagesPdfUrl, setFullPagesPdfUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'clips' | 'fullpages'>('clips');
 
   const handleSourceSelect = (source: NewsSource) => {
     setSelectedSource(source);
     setSelectedClip(null);
 
-    setCombinedPdfUrl(null);
+    // Limpa os PDFs anteriores
+    if (clipsPdfUrl) {
+      PdfService.revokeObjectUrl(clipsPdfUrl);
+      setClipsPdfUrl(null);
+    }
+    if (fullPagesPdfUrl) {
+      PdfService.revokeObjectUrl(fullPagesPdfUrl);
+      setFullPagesPdfUrl(null);
+    }
   };
 
   const handleSelectDirectory = async () => {
@@ -65,76 +73,58 @@ function App() {
     }
   };
 
-
-
-  const handleViewModeToggle = async () => {
-    if (!selectedClip || !selectedSource) return;
-    
-    const newViewMode = viewMode === 'clips' ? 'fullpages' : 'clips';
-    setViewMode(newViewMode);
-    
-    // Recarrega os PDFs com o novo modo
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Limpa o PDF combinado anterior
-      if (combinedPdfUrl) {
-        PdfService.revokeObjectUrl(combinedPdfUrl);
-        setCombinedPdfUrl(null);
-      }
-      
-      const urls = await fileService.getPdfFiles(selectedSource, selectedClip, newViewMode);
-      
-      // Combina os PDFs se houver mais de um
-      if (urls.length > 1) {
-        console.log('Combinando PDFs...');
-        const combinedUrl = await PdfService.combinePdfs(urls);
-        setCombinedPdfUrl(combinedUrl);
-      } else if (urls.length === 1) {
-        setCombinedPdfUrl(urls[0]);
-      }
-    } catch (err) {
-      setError('Erro ao carregar PDFs');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
-
   // Limpa a memória quando o componente for desmontado
   useEffect(() => {
     return () => {
-      if (combinedPdfUrl) {
-        PdfService.revokeObjectUrl(combinedPdfUrl);
+      if (clipsPdfUrl) {
+        PdfService.revokeObjectUrl(clipsPdfUrl);
+      }
+      if (fullPagesPdfUrl) {
+        PdfService.revokeObjectUrl(fullPagesPdfUrl);
       }
     };
-  }, [combinedPdfUrl]);
+  }, [clipsPdfUrl, fullPagesPdfUrl]);
 
   const handleClipSelect = async (source: NewsSource, clip: NewsClip) => {
     try {
       setLoading(true);
       setError(null);
       
-      // Limpa o PDF combinado anterior
-      if (combinedPdfUrl) {
-        PdfService.revokeObjectUrl(combinedPdfUrl);
-        setCombinedPdfUrl(null);
+      // Limpa os PDFs anteriores
+      if (clipsPdfUrl) {
+        PdfService.revokeObjectUrl(clipsPdfUrl);
+        setClipsPdfUrl(null);
+      }
+      if (fullPagesPdfUrl) {
+        PdfService.revokeObjectUrl(fullPagesPdfUrl);
+        setFullPagesPdfUrl(null);
       }
       
-      const urls = await fileService.getPdfFiles(source, clip, viewMode);
       setSelectedClip(clip);
       setSelectedSource(source);
       
-      // Combina os PDFs se houver mais de um
-      if (urls.length > 1) {
-        console.log('Combinando PDFs...');
-        const combinedUrl = await PdfService.combinePdfs(urls);
-        setCombinedPdfUrl(combinedUrl);
-      } else if (urls.length === 1) {
-        setCombinedPdfUrl(urls[0]);
+      // Carrega os PDFs de recortes e páginas inteiras em paralelo
+      const [clipsUrls, fullPagesUrls] = await Promise.all([
+        fileService.getPdfFiles(source, clip, 'clips'),
+        fileService.getPdfFiles(source, clip, 'fullpages')
+      ]);
+      
+      // Combina os PDFs de recortes se houver mais de um
+      if (clipsUrls.length > 1) {
+        console.log('Combinando PDFs de recortes...');
+        const combinedClipsUrl = await PdfService.combinePdfs(clipsUrls);
+        setClipsPdfUrl(combinedClipsUrl);
+      } else if (clipsUrls.length === 1) {
+        setClipsPdfUrl(clipsUrls[0]);
+      }
+      
+      // Combina os PDFs de páginas inteiras se houver mais de um
+      if (fullPagesUrls.length > 1) {
+        console.log('Combinando PDFs de páginas inteiras...');
+        const combinedFullPagesUrl = await PdfService.combinePdfs(fullPagesUrls);
+        setFullPagesPdfUrl(combinedFullPagesUrl);
+      } else if (fullPagesUrls.length === 1) {
+        setFullPagesPdfUrl(fullPagesUrls[0]);
       }
     } catch (err) {
       setError('Erro ao carregar PDFs');
@@ -143,7 +133,7 @@ function App() {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="app">
       {sources.length === 0 ? (
@@ -187,14 +177,11 @@ function App() {
               sources={sources}
               selectedSource={selectedSource}
               selectedClip={selectedClip}
-
-              combinedPdfUrl={combinedPdfUrl}
-              viewMode={viewMode}
+              clipsPdfUrl={clipsPdfUrl}
+              fullPagesPdfUrl={fullPagesPdfUrl}
               loading={loading}
               onSourceSelect={handleSourceSelect}
               onClipSelect={handleClipSelect}
-
-              onViewModeToggle={handleViewModeToggle}
             />
           </main>
         </>
