@@ -24,17 +24,33 @@ export function CropAreaViewer({ onBack }: CropAreaViewerProps) {
       const handle = await window.showDirectoryPicker();
       setDirectoryHandle(handle);
 
-      // Procura pelo arquivo JSON na pasta
-      const jsonFiles: FileSystemFileHandle[] = [];
+      // Procura pela pasta 'json' dentro da pasta selecionada
+      let jsonFolderHandle: FileSystemDirectoryHandle | null = null;
       // @ts-ignore - values() não está tipado no FileSystemDirectoryHandle
       for await (const entry of handle.values()) {
+        if (entry.kind === 'directory' && entry.name === 'json') {
+          jsonFolderHandle = entry as FileSystemDirectoryHandle;
+          break;
+        }
+      }
+
+      if (!jsonFolderHandle) {
+        setError('Pasta "json" não encontrada na pasta selecionada');
+        setLoading(false);
+        return;
+      }
+
+      // Procura pelo arquivo JSON dentro da pasta json
+      const jsonFiles: FileSystemFileHandle[] = [];
+      // @ts-ignore - values() não está tipado no FileSystemDirectoryHandle
+      for await (const entry of jsonFolderHandle.values()) {
         if (entry.kind === 'file' && entry.name.endsWith('.json')) {
           jsonFiles.push(entry as FileSystemFileHandle);
         }
       }
 
       if (jsonFiles.length === 0) {
-        setError('Nenhum arquivo JSON encontrado na pasta selecionada');
+        setError('Nenhum arquivo JSON encontrado na pasta "json"');
         setLoading(false);
         return;
       }

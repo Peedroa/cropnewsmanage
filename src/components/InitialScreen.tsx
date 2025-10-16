@@ -45,12 +45,12 @@ export function InitialScreen({ onSelectDirectory, onOpenCropViewer, loading = f
             <div className="structure-item indent">
               <span className="folder-icon-small">📁</span>
               <span className="folder-name">json/</span>
-              <span className="folder-desc">(arquivos .json com metadados)</span>
+              <span className="folder-desc">(arquivo .json com metadados)</span>
             </div>
             <div className="structure-item indent">
               <span className="folder-icon-small">📁</span>
-              <span className="folder-name">clips/</span>
-              <span className="folder-desc">(arquivos PDF dos recortes)</span>
+              <span className="folder-name">fullpages/</span>
+              <span className="folder-desc">(imagens das páginas completas)</span>
             </div>
           </div>
         </div>
