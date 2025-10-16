@@ -3,14 +3,18 @@ import { FileService } from './services/fileService';
 import { PdfService } from './services/pdfService';
 import { ThreeColumnLayout } from './components/ThreeColumnLayout';
 import { InitialScreen } from './components/InitialScreen';
+import { CropAreaViewer } from './components/CropAreaViewer';
 import type { NewsSource, NewsClip } from './types';
 import './App.css';
+
+type ViewMode = 'initial' | 'main' | 'cropViewer';
 
 function App() {
   const [fileService] = useState(() => new FileService());
   const [sources, setSources] = useState<NewsSource[]>([]);
   const [selectedClip, setSelectedClip] = useState<NewsClip | null>(null);
   const [selectedSource, setSelectedSource] = useState<NewsSource | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('initial');
 
   const [clipsPdfUrl, setClipsPdfUrl] = useState<string | null>(null);
   const [fullPagesPdfUrl, setFullPagesPdfUrl] = useState<string | null>(null);
@@ -64,6 +68,7 @@ function App() {
       
       setSources(sourcesWithClips);
       console.log('Estado atualizado com', sourcesWithClips.length, 'fontes e clips carregados');
+      setViewMode('main');
       
     } catch (err) {
       setError('Erro ao selecionar diretório');
@@ -71,6 +76,17 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOpenCropViewer = () => {
+    setViewMode('cropViewer');
+  };
+
+  const handleBackToInitial = () => {
+    setViewMode('initial');
+    setSources([]);
+    setSelectedClip(null);
+    setSelectedSource(null);
   };
 
   // Limpa a memória quando o componente for desmontado
@@ -136,11 +152,12 @@ function App() {
   
   return (
     <div className="app">
-      {sources.length === 0 ? (
-        // Tela inicial quando nenhuma pasta está selecionada
+      {viewMode === 'initial' ? (
+        // Tela inicial
         <>
           <InitialScreen 
             onSelectDirectory={handleSelectDirectory}
+            onOpenCropViewer={handleOpenCropViewer}
             loading={loading}
           />
           
@@ -151,6 +168,9 @@ function App() {
             </div>
           )}
         </>
+      ) : viewMode === 'cropViewer' ? (
+        // Visualizador de áreas de recorte
+        <CropAreaViewer onBack={handleBackToInitial} />
       ) : (
         // Interface principal quando pasta está selecionada
         <>
