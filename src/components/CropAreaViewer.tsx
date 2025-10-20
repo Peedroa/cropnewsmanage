@@ -322,32 +322,6 @@ export function CropAreaViewer({ onBack }: CropAreaViewerProps) {
                 )}
               </div>
 
-              {clipsData[selectedClipId].cropAreas && clipsData[selectedClipId].cropAreas.length > 0 && (
-                <div className="crop-areas-info">
-                  <h3>Áreas de Recorte:</h3>
-                  <div className="areas-list">
-                    {clipsData[selectedClipId].cropAreas.map((area, index) => (
-                      <div key={index} className="area-item">
-                        <span className="area-number">{index + 1}</span>
-                        <div className="area-details">
-                          <span>Página: {area.page}</span>
-                          <span>X: {(parseFloat(area.x) * 100).toFixed(1)}%</span>
-                          <span>Y: {(parseFloat(area.y) * 100).toFixed(1)}%</span>
-                          <span>Largura: {(parseFloat(area.width) * 100).toFixed(1)}%</span>
-                          <span>Altura: {(parseFloat(area.height) * 100).toFixed(1)}%</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {clipsData[selectedClipId].fulltext && (
-                <div className="fulltext-section">
-                  <h3>Texto Completo:</h3>
-                  <p>{clipsData[selectedClipId].fulltext}</p>
-                </div>
-              )}
             </>
           ) : (
             <div className="empty-viewer">
